@@ -10,19 +10,7 @@
 			case "\n":
 				// todo, check if space is pressed.
 				const command = e.target.value.substring(0, e.target.value.length - 1);
-				// const newHistory = [{ type: "input", value: command }];
-				const executed = exec(command);
-				// const newHistory = executed.error
-				// 	? [
-				// 		{ type: "input", value: command },
-				// 		{ type: "error", value: executed.error },
-				// 	]
-				// 	: [
-				// 		{ type: "input", value: command },
-				// 		{ type: "output", value: executed.result },
-				// 	];
-				// // if (output) { newHistory.push({ type: "output", value: output }); }
-				// history = history.concat(newHistory);
+				exec(command);
 				e.target.value = "";
 			break;
 		}
@@ -30,7 +18,6 @@
 
 	onMount(() => {
 		const textareaRef = document.querySelector(".terminal textarea");
-		// if (preRef) { preRef.scrollTop = preRef.scrollHeight; }
 		if (textareaRef) { textareaRef.focus(); }
 	});
 
@@ -73,8 +60,6 @@
 		overflow-y: auto;
 		margin: 0.5rem 0.5rem 0rem 0.5rem;
 		border-bottom: 2px solid;
-	}
-	pre {
 		white-space: pre-wrap;       /* css-3 */
 		white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
 		white-space: -pre-wrap;      /* Opera 4-6 */
@@ -88,7 +73,7 @@
 		border: 0;
 	}
 
-	/* colors and style */
+	/* colors */
 	.terminal {
 		background-color: #111;
 		border: 0.2rem solid #999;

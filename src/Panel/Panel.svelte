@@ -2,10 +2,11 @@
 	import FileDialog from "./FileDialog.svelte";
 	export let fileDidLoad = () => {};
 	export let exec;
+	export let viewMode;
 </script>
 
 <div class="panel">
-	<FileDialog {fileDidLoad} {exec} />
+	<FileDialog {fileDidLoad} {exec} bind:viewMode={viewMode} />
 </div>
 
 <style>

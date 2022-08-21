@@ -15,7 +15,10 @@
 			padding: 0.025
 		});
 
-	onMount(() => origamiLayer.appendTo(document.querySelector(".graph svg")));
+	onMount(() => {
+		origamiLayer.appendTo(document.querySelector(".graph svg"));
+		render(origami);
+	});
 
 	$: render(origami);
 
