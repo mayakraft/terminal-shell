@@ -3,6 +3,7 @@
 	import { onMount } from "svelte";
 
 	export let origami = {};
+	export let strokeWidth = 0.0025;
 
 	let origamiLayer = ear.svg.g().setClass("origami");
 
@@ -10,17 +11,17 @@
 		.removeChildren()
 		.origami(FOLD, {
 			viewBox: true,
-			strokeWidth: true,
+			// strokeWidth: true,
 			vertices: true,
 			padding: 0.025
-		});
+		}).strokeWidth(strokeWidth);
 
 	onMount(() => {
 		origamiLayer.appendTo(document.querySelector(".graph svg"));
 		render(origami);
 	});
 
-	$: render(origami);
+	$: render(origami, strokeWidth);
 
 </script>
 

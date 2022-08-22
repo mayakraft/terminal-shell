@@ -14,6 +14,7 @@
 	// import fragmentSimple3 from "./WebGL/simple3.frag?raw";
 
 	export let origami = {};
+	export let strokeWidth = 0.0025;
 	let { innerWidth, innerHeight } = window;
 
 	// webgl, hold onto these so we can dealloc them later
@@ -62,7 +63,7 @@
 
 	const drawEdges = (gl, graph, matrix) => {
 		gl.useProgram(edgesProgram);
-		gl.uniform1f(gl.getUniformLocation(edgesProgram, "thickness"), 0.0025);
+		gl.uniform1f(gl.getUniformLocation(edgesProgram, "thickness"), strokeWidth / 2);
 		gl.uniformMatrix4fv(gl.getUniformLocation(edgesProgram, "matrix"), false, matrix);
 
 		edgesVertexArrays.forEach(el => {

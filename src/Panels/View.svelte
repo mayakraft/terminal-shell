@@ -1,5 +1,6 @@
 <script>
 	export let viewMode = "svg";
+	export let strokeWidth = 0.0025;
 </script>
 
 <div class="view panel">
@@ -17,6 +18,8 @@
 		on:click={() => viewMode = "webgl"}
 		checked={viewMode==="webgl"}>
 	<label for="radio-view-webgl">webgl</label>
+	<hr />
+	<span>stroke width</span><input type="range" min="0.0001" max="0.04" step="0.0002" bind:value={strokeWidth} />
 </div>
 
 <style>

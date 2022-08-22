@@ -14,6 +14,7 @@
 	// the origami
 	let origami = {};
 	let viewMode = "svg";
+	let strokeWidth = 0.0025;
 
 	onMount(() => { origami = example; });
 
@@ -31,12 +32,12 @@
 <main>
 	<Shell bind:exec={exec} bind:origami={origami} bind:history={history}/>
 	<Modifiers {fileDidLoad} {exec} />
-	<View bind:viewMode={viewMode} />
+	<View bind:viewMode={viewMode} bind:strokeWidth={strokeWidth} />
 	<Terminal {exec} {history} />
 	{#if viewMode === "svg"}
-		<SVG {origami} />
+		<SVG {origami} {strokeWidth} />
 	{:else}
-		<WebGL {origami} />
+		<WebGL {origami} {strokeWidth} />
 	{/if}
 </main>
 
