@@ -18,8 +18,10 @@
 
 	// webgl, hold onto these so we can dealloc them later
 	let webGL;
-	let cpProgram, edgesProgram;
+	let facesProgram, edgesProgram;
 	let animationID;
+	let edgesVertexArrays, facesVertexArrays;
+	let edgesElementArrays, facesElementArrays;
 
 	/**
 	 * @description Create a modified graph which contains vertices_coords and faces_vertices
@@ -50,40 +52,6 @@
 			? [vertices]
 			: triangulate(vertices));
 
-	// const createUniformBuffer = (gl, program, uniformName, values) => {
-	// 	const buffer = gl.createBuffer();
-	// 	const uniformLocation = gl.getUniformLocation(program, uniformName);
-	// 	// console.log("uniform", uniformName, uniformLocation);
-	// 	gl.enableVertexAttribArray(uniformLocation);
-	// 	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-	// 	gl.vertexAttribPointer(
-	// 		uniformLocation,
-	// 		values[0].length,
-	// 		gl.FLOAT,
-	// 		false, // Normalize
-	// 		0, // Stride
-	// 		0, // Offset
-	// 	);
-	// 	return buffer;
-	// }
-
-	const createAttributeBuffer = (gl, program, attributeName, values) => {
-		const buffer = gl.createBuffer();
-		const attributeLocation = gl.getAttribLocation(program, attributeName);
-		// console.log("attribute", attributeName, attributeLocation);
-		gl.enableVertexAttribArray(attributeLocation);
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-		gl.vertexAttribPointer(
-			attributeLocation,
-			values[0].length,
-			gl.FLOAT,
-			false, // Normalize
-			0, // Stride
-			0, // Offset
-		);
-		return buffer;
-	};
-
 	const assignment_colors = {
 		B: [0.3, 0.3, 0.3],     b: [0.3, 0.3, 0.3],
 		V: [0.21, 0.39, 0.59],  v: [0.21, 0.39, 0.59],
@@ -94,56 +62,52 @@
 
 	const drawEdges = (gl, graph, matrix) => {
 		gl.useProgram(edgesProgram);
+		gl.uniform1f(gl.getUniformLocation(edgesProgram, "thickness"), 0.0025);
+		gl.uniformMatrix4fv(gl.getUniformLocation(edgesProgram, "matrix"), false, matrix);
 
-		// const ext = gl.getExtension('OES_texture_float');
+		edgesVertexArrays.forEach(el => {
+			gl.bindBuffer(gl.ARRAY_BUFFER, el.buffer);
+			gl.bufferData(gl.ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+			gl.vertexAttribPointer(el.location, el.length, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(el.location);
+		});
+		// gl.linkProgram(edgesProgram);
+		edgesElementArrays.forEach(el => {
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, el.buffer);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+			gl.drawElements(
+				el.mode, // GL.TRIANGLES for example
+				el.data.length,
+				gl.UNSIGNED_SHORT,
+				el.buffer
+			);
+		});
+	};
 
-		// const texture = gl.createTexture();
-		// gl.bindTexture(gl.TEXTURE_2D, texture);
+	const drawFaces = (gl, graph, matrix) => {
+		gl.useProgram(facesProgram);
+		gl.uniformMatrix4fv(gl.getUniformLocation(facesProgram, "matrix"), false, matrix);
 
-		// // lookup uniforms
-		// var textureLocation = gl.getUniformLocation(edgesProgram, "u_texture");
+		facesVertexArrays.forEach(el => {
+			gl.bindBuffer(gl.ARRAY_BUFFER, el.buffer);
+			gl.bufferData(gl.ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+			gl.vertexAttribPointer(el.location, el.length, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(el.location);
+		});
+		// gl.linkProgram(facesProgram);
+		facesElementArrays.forEach(el => {
+			gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, el.buffer);
+			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, el.data, gl.STATIC_DRAW);
+			gl.drawElements(
+				el.mode, // GL.TRIANGLES for example
+				el.data.length,
+				gl.UNSIGNED_SHORT,
+				el.buffer
+			);
+		});
+	};
 
-		// // fill texture with 1x3 pixels
-		// const level = 0;
-		// const internalFormat = gl.RGBA; // I've also tried to work with gl.LUMINANCE
-		// //   but it feels harder to debug
-		// const width = 1;
-		// const height = 3;
-		// const border = 0;
-		// // const type = gl.UNSIGNED_BYTE;
-		// const type = gl.FLOAT;
-		// // const data = new Uint8Array([
-		// // 	// R,   G,   B, A (unused)    // : 'texel' index (?)
-		// // 	64, 0, 0, 0, // : 0
-		// // 	0, 128, 0, 0, // : 1
-		// // 	0, 0, 255, 0, // : 2
-		// // ]);
-		// const data = new Float32Array([
-		// 	// R,   G,   B, A (unused)    // : 'texel' index (?)
-		// 	64, 0, 0, 0, // : 0
-		// 	0, 128, 0, 0, // : 1
-		// 	0, 0, 255, 0, // : 2
-		// ]);
-		// const alignment = 1; // should be uneccessary for this texture, but 
-		// // gl.pixelStorei(gl.UNPACK_ALIGNMENT, alignment); //   I don't think this is hurting
-		// // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.FLOAT, image);
-		// gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border,
-		// internalFormat, type, data);
-
-		// // set the filtering so we don't need mips and it's not filtered
-		// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		// gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-
-
-		// // Tell the shader to use texture unit 0 for u_texture
-		// gl.activeTexture(gl.TEXTURE0);     // added this and following line to be extra sure which texture is being used...
-		// gl.bindTexture(gl.TEXTURE_2D, texture);
-		// gl.uniform1i(textureLocation, 0);
-
-
+	const makeEdgesVertexArrays = (gl, graph) => {
 		const vertices_coords = graph.edges_vertices
 			.flatMap(edge => edge
 				.map(v => graph.vertices_coords[v]))
@@ -157,73 +121,65 @@
 		const verticesVector = graph.edges_vertices
 			.flatMap(() => [[1,0], [-1,0], [-1,0], [1,0]]);
 
-		gl.uniform1f(gl.getUniformLocation(edgesProgram, "thickness"), 0.0025);
-		gl.uniformMatrix4fv(gl.getUniformLocation(edgesProgram, "matrix"), false, matrix);
-		const positionBuffer = createAttributeBuffer(gl, edgesProgram, "position", vertices_coords);
-		const colorBuffer = createAttributeBuffer(gl, edgesProgram, "v_color", vertices_color);
-		const edgesVectorBuffer = createAttributeBuffer(gl, edgesProgram, "edge_vector", verticesEdgesVector);
-		const verticesVectorBuffer = createAttributeBuffer(gl, edgesProgram, "vertex_vector", verticesVector);
+		return [
+			{ location: gl.getAttribLocation(edgesProgram, "position"),
+				buffer: gl.createBuffer(),
+				length: vertices_coords[0].length, // length means the length of an individual point
+				data: new Float32Array(vertices_coords.flat()) },
+			{ location: gl.getAttribLocation(edgesProgram, "v_color"),
+				buffer: gl.createBuffer(),
+				length: vertices_color[0].length,
+				data: new Float32Array(vertices_color.flat()) },
+			{ location: gl.getAttribLocation(edgesProgram, "edge_vector"),
+				buffer: gl.createBuffer(),
+				length: verticesEdgesVector[0].length,
+				data: new Float32Array(verticesEdgesVector.flat()) },
+			{ location: gl.getAttribLocation(edgesProgram, "vertex_vector"),
+				buffer: gl.createBuffer(),
+				length: verticesVector[0].length,
+				data: new Float32Array(verticesVector.flat()) },
+		];
+	};
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_coords.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_color.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, edgesVectorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesEdgesVector.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, verticesVectorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesVector.flat()), gl.STATIC_DRAW);
+	const makeFacesVertexArrays = (gl, graph) => {
+		const vertices_color = graph.vertices_coords.map(() => [0.11, 0.11, 0.11]);
+		return [
+			{ location: gl.getAttribLocation(facesProgram, "position"),
+				buffer: gl.createBuffer(),
+				length: graph.vertices_coords[0].length,
+				data: new Float32Array(graph.vertices_coords.flat()) },
+			{ location: gl.getAttribLocation(facesProgram, "v_color"),
+				buffer: gl.createBuffer(),
+				length: vertices_color[0].length,
+				data: new Float32Array(vertices_color.flat()) },
+		];
+	};
 
+	const makeEdgesElementArrays = (gl, graph) => {
 		const edgesTriangles = graph.edges_vertices
 			.map((_, i) => i * 4)
 			.flatMap(i => [i + 0, i + 1, i + 2, i + 2, i + 3, i + 0]);
-		const triangleVerticesData = new Uint16Array(edgesTriangles);
-
-		const indicesBuffer = gl.createBuffer();
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleVerticesData, gl.STATIC_DRAW);
-		gl.drawElements(
-			gl.TRIANGLES,
-			triangleVerticesData.length,
-			gl.UNSIGNED_SHORT,
-			indicesBuffer
-		);
+		return [
+			{
+				mode: gl.TRIANGLES,
+				buffer: gl.createBuffer(),
+				data: new Uint16Array(edgesTriangles),
+			}
+		];
 	};
-
-	const drawFaces = (gl, graph, matrix) => {
-		const vertices_coords = graph.vertices_coords;
-		const vertices_color = vertices_coords.map(() => [0.11, 0.11, 0.11]);
-
-		gl.useProgram(cpProgram);
-
-		gl.uniformMatrix4fv(gl.getUniformLocation(cpProgram, "matrix"), false, matrix);
-		const positionBuffer = createAttributeBuffer(gl, cpProgram, "position", vertices_coords);
-		const colorBuffer = createAttributeBuffer(gl, cpProgram, "v_color", vertices_color);
-
-		// set vertex data
-		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_coords.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_color.flat()), gl.STATIC_DRAW);
-
-		// set index data
-		const indicesBuffer = gl.createBuffer();
-		const triangleVerticesData = new Uint16Array(triangulateConvexFacesVertices(graph).flat());
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleVerticesData, gl.STATIC_DRAW);
-		gl.drawElements(
-			gl.TRIANGLES,
-			triangleVerticesData.length,
-			gl.UNSIGNED_SHORT,
-			indicesBuffer
-		);
-	};
+	const makeFacesElementArrays = (gl, graph) => [
+		{
+			mode: gl.TRIANGLES,
+			buffer: gl.createBuffer(),
+			data: new Uint16Array(triangulateConvexFacesVertices(graph).flat()),
+		}
+	];
 
 	let frameNum = 0;
 
 	const draw = (gl, graph, size) => {
-		const matrix = makeOrthographicCamera(...size);
-		// const matrix = makePerspectiveCamera(...size, frameNum);
+		// const matrix = makeOrthographicCamera(...size);
+		const matrix = makePerspectiveCamera(...size, frameNum);
 		drawFaces(gl, graph, matrix);
 		drawEdges(gl, graph, matrix);
 		frameNum += 1;
@@ -232,6 +188,10 @@
 	const redrawCanvas = (graph, w, h) => {
 		const element = document.querySelector("canvas");
 		if (!element || !webGL) { return; }
+		edgesVertexArrays = makeEdgesVertexArrays(webGL, graph);
+		facesVertexArrays = makeFacesVertexArrays(webGL, graph);
+		edgesElementArrays = makeEdgesElementArrays(webGL, graph);
+		facesElementArrays = makeFacesElementArrays(webGL, graph);
 		draw(webGL, graph, [element.clientWidth, element.clientHeight]);
 	};
 
@@ -243,27 +203,28 @@
 		if (!gl) { return; }
 		switch (version) {
 			case 1:
-				cpProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
+				facesProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
 				edgesProgram = MakeShaderProgram(gl, vertexThickEdges, fragmentSimple);
 				break;
 			case 2:
-				cpProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
+				facesProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
 				edgesProgram = MakeShaderProgram(gl, vertexThickEdges, fragmentSimple);
 				break;
 		}
-		draw(gl, origami, [element.clientWidth, element.clientHeight]);
-
-		// const animate = () => {
-		// 	animationID = window.requestAnimationFrame(animate);
-		// 	draw(gl, origami, [element.clientWidth, element.clientHeight]);
-		// };
-		// animate();
 		webGL = gl;
+		redrawCanvas(origami);
+		// draw(gl, origami, [element.clientWidth, element.clientHeight]);
+
+		const animate = () => {
+			animationID = window.requestAnimationFrame(animate);
+			draw(gl, origami, [element.clientWidth, element.clientHeight]);
+		};
+		animate();
 	});
 
 	onDestroy(() => {
 		// dealloc webgl
-		webGL.deleteProgram(cpProgram);
+		webGL.deleteProgram(facesProgram);
 		webGL.deleteProgram(edgesProgram);
 		window.cancelAnimationFrame(animationID);
 	});
