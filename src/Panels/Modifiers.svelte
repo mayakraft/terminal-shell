@@ -2,24 +2,24 @@
 	import FileDialog from "./FileDialog.svelte";
 	export let fileDidLoad = () => {};
 	export let exec;
-	export let viewMode;
 </script>
 
-<div class="panel">
-	<FileDialog {fileDidLoad} {exec} bind:viewMode={viewMode} />
+<div class="modifiers panel">
+	<FileDialog {fileDidLoad} {exec} />
 </div>
 
 <style>
-	.panel {
+	.modifiers {
 		grid-column: 1/2;
 		grid-row: 1/2;
-
+	}
+	.panel {
 		margin: 0.25rem;
 		padding: 0.5rem;
-
 		background-color: #111;
-		border: 0.2rem solid #999;
+		border: 0.2rem solid #666;
 		border-radius: 0.5rem;
 		background-color: #222;
 	}
+
 </style>

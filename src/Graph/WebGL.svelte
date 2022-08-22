@@ -16,8 +16,8 @@
 	export let origami = {};
 	let { innerWidth, innerHeight } = window;
 
-	// webgl variables, hold onto these so we can dealloc them later
-	let gl;
+	// webgl, hold onto these so we can dealloc them later
+	let webGL;
 	let cpProgram, edgesProgram;
 	let animationID;
 
@@ -92,7 +92,7 @@
 		U: [0.2, 0.2, 0.2],     u: [0.2, 0.2, 0.2],
 	};
 
-	const drawEdges = (matrix) => {
+	const drawEdges = (gl, graph, matrix) => {
 		gl.useProgram(edgesProgram);
 
 		// const ext = gl.getExtension('OES_texture_float');
@@ -144,22 +144,18 @@
 		// gl.uniform1i(textureLocation, 0);
 
 
-		// const exploded = explodeEdges(origami);
-		const vertices_coords = origami.edges_vertices
+		const vertices_coords = graph.edges_vertices
 			.flatMap(edge => edge
-				.map(v => origami.vertices_coords[v]))
+				.map(v => graph.vertices_coords[v]))
 				.flatMap(coord => [coord, coord]);
-		const edgesVector = ear.graph.makeEdgesVector(origami);
-		// const edgesVector = vertices_coords.map(v => [0.01 * Math.random(), 0.01 * Math.random()]);
-		const edgesOrigin = origami.edges_vertices.map(edge => origami.vertices_coords[edge[0]]);
-		const vertices_color = origami.edges_assignment
+		const edgesVector = ear.graph.makeEdgesVector(graph);
+		const edgesOrigin = graph.edges_vertices.map(edge => graph.vertices_coords[edge[0]]);
+		const vertices_color = graph.edges_assignment
 			.flatMap(a => [assignment_colors[a], assignment_colors[a], assignment_colors[a], assignment_colors[a]]);
-		// const verticesCorner = vertices_coords.map((_, i) => i % 4);
 		const verticesEdgesVector = edgesVector
 			.flatMap(el => [el, el, el, el]);
-		const verticesVector = origami.edges_vertices
+		const verticesVector = graph.edges_vertices
 			.flatMap(() => [[1,0], [-1,0], [-1,0], [1,0]]);
-		// const nudge = vertices_coords.map(v => [0.01 * Math.random(), 0.01 * Math.random()]);
 
 		gl.uniform1f(gl.getUniformLocation(edgesProgram, "thickness"), 0.0025);
 		gl.uniformMatrix4fv(gl.getUniformLocation(edgesProgram, "matrix"), false, matrix);
@@ -167,31 +163,19 @@
 		const colorBuffer = createAttributeBuffer(gl, edgesProgram, "v_color", vertices_color);
 		const edgesVectorBuffer = createAttributeBuffer(gl, edgesProgram, "edge_vector", verticesEdgesVector);
 		const verticesVectorBuffer = createAttributeBuffer(gl, edgesProgram, "vertex_vector", verticesVector);
-		// const nudgeBuffer = createAttributeBuffer(gl, edgesProgram, "nudge", nudge);
 
-		// set data
-		gl.bindBuffer(gl.UNIFORM_BUFFER, positionBuffer);
-		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(vertices_coords.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.UNIFORM_BUFFER, colorBuffer);
-		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(vertices_color.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.UNIFORM_BUFFER, edgesVectorBuffer);
-		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(verticesEdgesVector.flat()), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.UNIFORM_BUFFER, verticesVectorBuffer);
-		gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(verticesVector.flat()), gl.STATIC_DRAW);
-		// gl.bindBuffer(gl.UNIFORM_BUFFER, nudgeBuffer);
-		// gl.bufferData(gl.UNIFORM_BUFFER, new Float32Array(nudge.flat()), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_coords.flat()), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices_color.flat()), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, edgesVectorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesEdgesVector.flat()), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, verticesVectorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesVector.flat()), gl.STATIC_DRAW);
 
-		const edgesTriangles = origami.edges_vertices
+		const edgesTriangles = graph.edges_vertices
 			.map((_, i) => i * 4)
 			.flatMap(i => [i + 0, i + 1, i + 2, i + 2, i + 3, i + 0]);
-
-		// console.log("vertices_coords", vertices_coords);
-		// console.log("vertices_color", vertices_color);
-		// console.log("edgesVector", edgesVector);
-		// console.log("edgesTriangles", edgesTriangles);
-		// console.log("verticesEdgesVector", verticesEdgesVector);
-		// console.log("verticesVector", verticesVector);
-
 		const triangleVerticesData = new Uint16Array(edgesTriangles);
 
 		const indicesBuffer = gl.createBuffer();
@@ -206,8 +190,8 @@
 		);
 	};
 
-	const drawFaces = (matrix) => {
-		const vertices_coords = origami.vertices_coords;
+	const drawFaces = (gl, graph, matrix) => {
+		const vertices_coords = graph.vertices_coords;
 		const vertices_color = vertices_coords.map(() => [0.11, 0.11, 0.11]);
 
 		gl.useProgram(cpProgram);
@@ -224,7 +208,7 @@
 
 		// set index data
 		const indicesBuffer = gl.createBuffer();
-		const triangleVerticesData = new Uint16Array(triangulateConvexFacesVertices(origami).flat());
+		const triangleVerticesData = new Uint16Array(triangulateConvexFacesVertices(graph).flat());
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indicesBuffer);
 		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, triangleVerticesData, gl.STATIC_DRAW);
 		gl.drawElements(
@@ -237,41 +221,50 @@
 
 	let frameNum = 0;
 
-	const draw = (canvasWidth, canvasHeight) => {
-		const matrix = makeOrthographicCamera(canvasWidth, canvasHeight);
-		// const matrix = makePerspectiveCamera(canvasWidth, canvasHeight, frameNum);
-		drawFaces(matrix);
-		drawEdges(matrix);
+	const draw = (gl, graph, size) => {
+		const matrix = makeOrthographicCamera(...size);
+		// const matrix = makePerspectiveCamera(...size, frameNum);
+		drawFaces(gl, graph, matrix);
+		drawEdges(gl, graph, matrix);
 		frameNum += 1;
 	};
 
-	const resizeCanvas = (w, h) => {
+	const redrawCanvas = (graph, w, h) => {
 		const element = document.querySelector("canvas");
-		if (!element || !cpProgram) { return; }
-		// if (!element || !cpProgram || !edgesProgram) { return; }
-		draw(element.clientWidth, element.clientHeight);
+		if (!element || !webGL) { return; }
+		draw(webGL, graph, [element.clientWidth, element.clientHeight]);
 	};
 
-	$: resizeCanvas(innerWidth, innerHeight);
+	$: redrawCanvas(origami, innerWidth, innerHeight);
 
 	onMount(() => {
 		const element = document.querySelector("canvas");
-		gl = initializeWebGL(element);
-		cpProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
-		edgesProgram = MakeShaderProgram(gl, vertexThickEdges, fragmentSimple);
-		draw(element.clientWidth, element.clientHeight);
+		const { gl, version } = initializeWebGL(element);
+		if (!gl) { return; }
+		switch (version) {
+			case 1:
+				cpProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
+				edgesProgram = MakeShaderProgram(gl, vertexThickEdges, fragmentSimple);
+				break;
+			case 2:
+				cpProgram = MakeShaderProgram(gl, vertexSimple, fragmentSimple);
+				edgesProgram = MakeShaderProgram(gl, vertexThickEdges, fragmentSimple);
+				break;
+		}
+		draw(gl, origami, [element.clientWidth, element.clientHeight]);
 
-		const animate = () => {
-			animationID = window.requestAnimationFrame(animate);
-			draw(element.clientWidth, element.clientHeight);
-		};
-		animate();
+		// const animate = () => {
+		// 	animationID = window.requestAnimationFrame(animate);
+		// 	draw(gl, origami, [element.clientWidth, element.clientHeight]);
+		// };
+		// animate();
+		webGL = gl;
 	});
 
 	onDestroy(() => {
 		// dealloc webgl
-		gl.deleteProgram(cpProgram);
-		gl.deleteProgram(edgesProgram);
+		webGL.deleteProgram(cpProgram);
+		webGL.deleteProgram(edgesProgram);
 		window.cancelAnimationFrame(animationID);
 	});
 
@@ -293,7 +286,7 @@
 	}
 	.graph {
 		grid-column: 2/3;
-		grid-row: 1/3;
+		grid-row: 1/4;
 		display: flex;
 		align-items: center;
 		justify-content: center;

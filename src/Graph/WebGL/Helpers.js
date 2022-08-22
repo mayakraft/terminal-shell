@@ -1,3 +1,4 @@
+
 export const initializeWebGL = (canvasElement) => {
 	if (!canvasElement) {
 		canvasElement = document.querySelector("canvas");
@@ -6,9 +7,11 @@ export const initializeWebGL = (canvasElement) => {
 	// set the size of the drawingBuffer based on the size it's displayed.
 	canvasElement.width = canvasElement.clientWidth * devicePixelRatio;
 	canvasElement.height = canvasElement.clientHeight * devicePixelRatio;
-	const gl = canvasElement.getContext("webgl2");
-	if (gl == null) { throw "WebGl not Supported"; }
-	return gl;
+	// const gl2 = canvasElement.getContext("webgl2");
+	// if (gl2) { return { gl: gl2, version: 2 }; }
+	const gl1 = canvasElement.getContext("webgl");
+	if (gl1) { return { gl: gl1, version: 1 }; }
+	throw "WebGl not Supported";
 };
 
 // project specific matrix stuff

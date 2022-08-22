@@ -34,7 +34,7 @@
 	}
 	.graph {
 		grid-column: 2/3;
-		grid-row: 1/3;
+		grid-row: 1/4;
 		display: flex;
 		align-items: center;
 		justify-content: center;

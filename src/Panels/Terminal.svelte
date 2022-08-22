@@ -46,7 +46,7 @@
 	pre span.error { color: #e53; }
 	.terminal {
 		grid-column: 1/2;
-		grid-row: 2/3;
+		grid-row: 3/4;
 		display: flex;
 		flex-direction: column;
 		/*box-sizing: border-box;*/
@@ -76,7 +76,7 @@
 	/* colors */
 	.terminal {
 		background-color: #111;
-		border: 0.2rem solid #999;
+		border: 0.2rem solid #666;
 		border-radius: 0.5rem;
 		background-color: #222;
 	}

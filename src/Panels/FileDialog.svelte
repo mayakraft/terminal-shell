@@ -3,7 +3,6 @@
 	let files;
 	export let fileDidLoad = () => {};
 	export let exec;
-	export let viewMode = "svg";
 
 	const fileDialogDidLoad = (string, filename, mimeType) => {
 		let result = { value: undefined, error: undefined };
@@ -30,21 +29,6 @@
 </script>
 
 <input type="file" bind:files>
-<hr />
-	<input
-		type="radio"
-		name="radio-view"
-		value="radio-view-svg"
-		on:click={() => viewMode = "svg"}
-		checked={viewMode==="svg"}>
-	<label for="radio-view-svg">svg</label>
-	<input
-		type="radio"
-		name="radio-view"
-		value="radio-view-webgl"
-		on:click={() => viewMode = "webgl"}
-		checked={viewMode==="webgl"}>
-	<label for="radio-view-webgl">webgl</label>
 <hr />
 <button on:click={() => exec(`origami = ear.cp.kite()`)}>origami = ear.cp.kite</button>
 <button on:click={() => exec(`origami = ${JSON.stringify(example)}`)}>origami = example</button>

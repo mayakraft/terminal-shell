@@ -1,8 +1,9 @@
 <script>
 	import { onMount } from "svelte";
-	import Panel from "./Panel/Panel.svelte";
+	import Modifiers from "./Panels/Modifiers.svelte";
+	import View from "./Panels/View.svelte";
+	import Terminal from "./Panels/Terminal.svelte";
 	import Shell from "./Kernel/Shell.svelte";
-	import Terminal from "./Kernel/Terminal.svelte";
 	import SVG from "./Graph/SVG.svelte";
 	import WebGL from "./Graph/WebGL.svelte";
 	import example from "./example.json";
@@ -18,7 +19,6 @@
 
 	const fileDidLoad = (result) => {
 		// first, reset any app data:
-		//
 		const newHistory = [{ type: "input", value: `origami = [FileDialog file]` }];
 		if (result.value) { origami = result.value; }
 		newHistory.push(result.error
@@ -30,7 +30,8 @@
 
 <main>
 	<Shell bind:exec={exec} bind:origami={origami} bind:history={history}/>
-	<Panel {fileDidLoad} {exec} bind:viewMode={viewMode} />
+	<Modifiers {fileDidLoad} {exec} />
+	<View bind:viewMode={viewMode} />
 	<Terminal {exec} {history} />
 	{#if viewMode === "svg"}
 		<SVG {origami} />
@@ -45,6 +46,6 @@
 		height: 100%;
 		display: grid;
 		grid-template-columns: 50% 50%;
-		grid-template-rows: 50% 50%;
+		grid-template-rows: 40% 20% 40%;
 	}
 </style>
