@@ -2,11 +2,11 @@
 	import ear from "rabbit-ear";
 	import { onMount, onDestroy } from "svelte";
 	import MakeShaderProgram from "./WebGL/MakeShaderProgram";
-	import { initializeWebGL } from "./WebGL/Helpers";
 	import {
+		initializeWebGL,
 		makePerspectiveCamera,
 		makeOrthographicCamera,
-	} from "./WebGL/camera";
+	} from "./WebGL/Helpers";
 	import vertexSimple from "./WebGL/simple.vert?raw";
 	import vertexThickEdges from "./WebGL/thickEdges.vert?raw";
 	import fragmentSimple from "./WebGL/simple.frag?raw";
@@ -23,7 +23,6 @@
 	let animationID;
 	let edgesVertexArrays, facesVertexArrays;
 	let edgesElementArrays, facesElementArrays;
-
 	/**
 	 * @description Create a modified graph which contains vertices_coords and faces_vertices
 	 * but that for every face, vertices_coords has been duplicated so that faces
@@ -160,21 +159,18 @@
 		const edgesTriangles = graph.edges_vertices
 			.map((_, i) => i * 4)
 			.flatMap(i => [i + 0, i + 1, i + 2, i + 2, i + 3, i + 0]);
-		return [
-			{
-				mode: gl.TRIANGLES,
-				buffer: gl.createBuffer(),
-				data: new Uint16Array(edgesTriangles),
-			}
-		];
-	};
-	const makeFacesElementArrays = (gl, graph) => [
-		{
+		return [{
 			mode: gl.TRIANGLES,
 			buffer: gl.createBuffer(),
-			data: new Uint16Array(triangulateConvexFacesVertices(graph).flat()),
-		}
-	];
+			data: new Uint16Array(edgesTriangles),
+		}];
+	};
+
+	const makeFacesElementArrays = (gl, graph) => [{
+		mode: gl.TRIANGLES,
+		buffer: gl.createBuffer(),
+		data: new Uint16Array(triangulateConvexFacesVertices(graph).flat()),
+	}];
 
 	let frameNum = 0;
 

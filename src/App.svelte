@@ -13,18 +13,22 @@
 	let history = [];
 	// the origami
 	let origami = {};
+	// view options
 	let viewMode = "svg";
 	let strokeWidth = 0.0025;
 
+	// load example on start
 	onMount(() => { origami = example; });
 
 	const fileDidLoad = (result) => {
-		// first, reset any app data:
+		// first, reset any app data. especially if tied to the origami
+		// second: update origami. this can happen two ways, A:
 		const newHistory = [{ type: "input", value: `origami = [FileDialog file]` }];
 		if (result.value) { origami = result.value; }
 		newHistory.push(result.error
 			? { type: "error", value: result.error }
 			: { type: "output", value: result.value });
+		// or B:
 		// exec(`origami = ${JSON.stringify(JSON.parse(newFile))}`)
 	};
 </script>
