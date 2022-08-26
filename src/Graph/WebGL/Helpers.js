@@ -22,8 +22,8 @@ export const makeOrthographicCamera = (canvasWidth, canvasHeight, frameNum = 0) 
 		1 + ((canvasWidth - vmin) / vmin) / 2,
 		-((canvasHeight - vmin) / vmin) / 2,
 		-((canvasWidth - vmin) / vmin) / 2,
-		0.01,
-		100);
+		-10,
+		10);
 	const translationMatrix3D = ear.math.makeMatrix4Translate(0, 0, -2);
 	return ear.math.multiplyMatrices4(projectionMatrix3D, translationMatrix3D);
 };

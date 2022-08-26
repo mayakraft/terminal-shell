@@ -1,5 +1,5 @@
 <script>
-	import example from "../example.json";
+	import exampleText from "../example.fold?raw";
 	let files;
 	export let fileDidLoad = () => {};
 	export let exec;
@@ -31,7 +31,7 @@
 <input type="file" bind:files>
 <hr />
 <button on:click={() => exec(`origami = ear.cp.kite()`)}>origami = ear.cp.kite</button>
-<button on:click={() => exec(`origami = ${JSON.stringify(example)}`)}>origami = example</button>
+<button on:click={() => exec(`origami = ${exampleText}`)}>origami = example</button>
 <hr />
 <button on:click={() => exec(`ear.graph.fragment(origami)`)}>fragment</button>
 <button on:click={() => exec(`ear.graph.populate(origami)`)}>populate</button>

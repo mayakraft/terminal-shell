@@ -1,8 +1,8 @@
 uniform mat4 matrix;
 uniform float thickness;
+
 attribute vec2 position;
 attribute vec3 v_color;
-
 attribute vec2 edge_vector;
 attribute vec2 vertex_vector;
 

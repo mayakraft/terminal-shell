@@ -6,7 +6,8 @@
 	import Shell from "./Kernel/Shell.svelte";
 	import SVG from "./Graph/SVG.svelte";
 	import WebGL from "./Graph/WebGL.svelte";
-	import example from "./example.json";
+	import example from "./example.fold?raw";
+	// import example from "./example3D.fold?raw";
 	// Shell exec() method
 	let exec;
 	// shell exec() history
@@ -18,7 +19,7 @@
 	let strokeWidth = 0.0025;
 
 	// load example on start
-	onMount(() => { origami = example; });
+	onMount(() => { origami = JSON.parse(example); });
 
 	const fileDidLoad = (result) => {
 		// first, reset any app data. especially if tied to the origami
