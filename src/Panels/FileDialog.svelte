@@ -1,5 +1,6 @@
 <script>
-	import exampleText from "../example.fold?raw";
+	import craneText from "../example.fold?raw";
+	import MoosersTrainText from "../MoosersTrain.fold?raw";
 	let files;
 	export let fileDidLoad = () => {};
 	export let exec;
@@ -31,7 +32,9 @@
 <input type="file" bind:files>
 <hr />
 <button on:click={() => exec(`origami = ear.cp.kite()`)}>origami = ear.cp.kite</button>
-<button on:click={() => exec(`origami = ${exampleText}`)}>origami = example</button>
+<!-- <button on:click={() => exec(`origami = ${craneText}`)}>origami = example</button> -->
+<button on:click={() => fileDialogDidLoad(craneText)}>origami = crane</button>
+<!-- <button on:click={() => fileDialogDidLoad(MoosersTrainText)}>origami = Mooser's-Train</button> -->
 <hr />
 <button on:click={() => exec(`ear.graph.fragment(origami)`)}>fragment</button>
 <button on:click={() => exec(`ear.graph.populate(origami)`)}>populate</button>

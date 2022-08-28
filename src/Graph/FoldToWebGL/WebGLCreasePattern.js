@@ -1,18 +1,9 @@
 import ear from "rabbit-ear";
-import MakeShaderProgram from "../WebGL/MakeShaderProgram";
-import fragmentSimpleV1 from "./simple-v1.frag?raw";
-import vertexSimpleV1 from "./simple-v1.vert?raw";
-import vertexThickEdgesV1 from "./thick-edges-v1.vert?raw";
+import fragmentSimpleV1 from "./shaders/gl1-simple.frag?raw";
+import vertexSimpleV1 from "./shaders/gl1-simple.vert?raw";
+import vertexThickEdgesV1 from "./shaders/gl1-thick-edges.vert?raw";
 // import vertexThickEdges3 from "../WebGL/thickEdges3.vert?raw";
 // import fragmentSimple3 from "../WebGL/simple3.frag?raw";
-
-const triangulate = (indices) => Array.from(Array(indices.length - 2))
-	.map((_, i) => [indices[0], indices[i + 1], indices[i + 2]]);
-
-const triangulateConvexFacesVertices = ({ faces_vertices }) => faces_vertices
-	.flatMap(vertices => vertices.length < 4
-		? [vertices]
-		: triangulate(vertices));
 
 const assignment_colors = {
 	B: [0.33, 0.33, 0.33],  b: [0.33, 0.33, 0.33],
@@ -84,19 +75,19 @@ const makeFacesVertexArrays = (gl, graph, program) => {
 const makeFacesElementArrays = (gl, graph) => [{
 	mode: gl.TRIANGLES,
 	buffer: gl.createBuffer(),
-	data: new Uint16Array(triangulateConvexFacesVertices(graph).flat()),
+	data: new Uint16Array(ear.graph.triangulateConvexFacesVertices(graph).flat()),
 }];
 
 const WebGLCreasePattern = (graph, gl, version = 1) => {
 	const shaders = [];
 	switch (version) {
 		case 1: shaders.push(
-				{ program: MakeShaderProgram(gl, vertexSimpleV1, fragmentSimpleV1) },
-				{ program: MakeShaderProgram(gl, vertexThickEdgesV1, fragmentSimpleV1) },
+				{ program: ear.webgl.createProgram(gl, vertexSimpleV1, fragmentSimpleV1) },
+				{ program: ear.webgl.createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1) },
 			); break;
 		case 2: shaders.push(
-				{ program: MakeShaderProgram(gl, vertexSimpleV1, fragmentSimpleV1) },
-				{ program: MakeShaderProgram(gl, vertexThickEdgesV1, fragmentSimpleV1)},
+				{ program: ear.webgl.createProgram(gl, vertexSimpleV1, fragmentSimpleV1) },
+				{ program: ear.webgl.createProgram(gl, vertexThickEdgesV1, fragmentSimpleV1)},
 			); break;
 	}
 	shaders[0].vertexArrays = makeFacesVertexArrays(gl, graph, shaders[0].program);

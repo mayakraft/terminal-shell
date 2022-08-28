@@ -3,6 +3,7 @@
 	import { onMount } from "svelte";
 
 	export let origami = {};
+	export let viewClass = "creasePattern";
 	export let strokeWidth = 0.0025;
 
 	let origamiLayer = ear.svg.g().setClass("origami");
