@@ -1,27 +1,47 @@
-# terminal and shell Javascript demo
+# Svelte + Vite
 
-quick demonstration of a virtual "shell" and front-end terminal interface to a simple Javascript app.
+This template should help get you started developing with Svelte in Vite.
 
-this is intended to be a starter for larger projects, and works like this: all methods can be routed through the shell/terminal, even if the terminal is invisible most of the time, the terminal can optionally be accessed at any time for manual API input.
+## Recommended IDE Setup
 
-the "shell" exposes the actual JS library (Svelte in this case) data models, which is an origami crease pattern. terminal commands can modify the data, and changes are automatically updated throughout the app (Svelte takes care of that).
+[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode).
 
-## install
+## Need an official Svelte framework?
 
-run `npm i` then `npm run dev`
+Check out [SvelteKit](https://github.com/sveltejs/kit#readme), which is also powered by Vite. Deploy anywhere with its serverless-first approach and adapt to various platforms, with out of the box support for TypeScript, SCSS, and Less, and easily-added support for mdsvex, GraphQL, PostCSS, Tailwind CSS, and more.
 
-## dependencies
+## Technical considerations
 
-this project is built from the Svelte + Vite starter template, and includes one additional dependency, [Rabbit Ear](https://rabbitear.org), for the origami methods.
+**Why use this over SvelteKit?**
 
-this app should run without any setup, though, double check the `package.json` for this line. sometimes I am running a nightly, local build of Rabbit Ear, if you see this line, replace it with the following.
+- It brings its own routing solution which might not be preferable for some users.
+- It is first and foremost a framework that just happens to use Vite under the hood, not a Vite app.
+
+This template contains as little as possible to get started with Vite + Svelte, while taking into account the developer experience with regards to HMR and intellisense. It demonstrates capabilities on par with the other `create-vite` templates and is a good starting point for beginners dipping their toes into a Vite + Svelte project.
+
+Should you later need the extended capabilities and extensibility provided by SvelteKit, the template has been structured similarly to SvelteKit so that it is easy to migrate.
+
+**Why `global.d.ts` instead of `compilerOptions.types` inside `jsconfig.json` or `tsconfig.json`?**
+
+Setting `compilerOptions.types` shuts out all other types not explicitly listed in the configuration. Using triple-slash references keeps the default TypeScript setting of accepting type information from the entire workspace, while also adding `svelte` and `vite/client` type information.
+
+**Why include `.vscode/extensions.json`?**
+
+Other templates indirectly recommend extensions via the README, but this file allows VS Code to prompt the user to install the recommended extension upon opening the project.
+
+**Why enable `checkJs` in the JS template?**
+
+It is likely that most cases of changing variable types in runtime are likely to be accidental, rather than deliberate. This provides advanced typechecking out of the box. Should you like to take advantage of the dynamically-typed nature of JavaScript, it is trivial to change the configuration.
+
+**Why is HMR not preserving my local component state?**
+
+HMR state preservation comes with a number of gotchas! It has been disabled by default in both `svelte-hmr` and `@sveltejs/vite-plugin-svelte` due to its often surprising behavior. You can read the details [here](https://github.com/rixo/svelte-hmr#svelte-hmr).
+
+If you have state that's important to retain within a component, consider creating an external store which would not be replaced by HMR.
 
 ```js
-"rabbit-ear": "file:../../Origami/"
-```
-
-replace it with this:
-
-```js
-"rabbit-ear": "^0.9.32"
+// store.js
+// An extremely simple external store
+import { writable } from 'svelte/store'
+export default writable(0)
 ```

@@ -1,80 +1,70 @@
 <script>
-	import { onMount } from "svelte";
-	import Modifiers from "./Panels/Modifiers.svelte";
-	import View from "./Panels/View.svelte";
-	import Terminal from "./Panels/Terminal.svelte";
-	import Shell from "./Kernel/Shell.svelte";
-	import SVG from "./Graph/SVG.svelte";
-	import WebGL from "./Graph/WebGL.svelte";
-	// import example from "./example.fold?raw";
-	import example from "./example3D.fold?raw";
-	// import example from "./3dmodel.fold?raw";
-	// import example from "./MoosersTrain.fold?raw";
-	// Shell exec() method
+	import ear from "rabbit-ear";
+
+	import Shell from "./Shell.svelte";
+	import DragAndDrop from "./FileManager/DragAndDrop.svelte";
+	import FileManager from "./FileManager/FileManager.svelte";
+
+	import AlertCopied from "./AlertCopied.svelte";
+	import Header from "./Header.svelte";
+	import Sidebar from "./Sidebar/Sidebar.svelte";
+	import Terminal from "./Terminal/Terminal.svelte";
+	import FileViewer from "./FileViewer.svelte";
+
+	let history;
 	let exec;
-	// shell exec() history
-	let history = [];
-	// the origami
-	let origami = {};
-	// view options
-	let renderEngine = "svg";
-	let webGLPerspective = "orthographic";
-	let viewClass = "foldedForm"; //"creasePattern";
-	let strokeWidth = 0.0025;
+	let loadFiles;
+	let files;
 
-	// load example on start
-	// onMount(() => { origami = JSON.parse(example); });
-	onMount(() => fileDidLoad({value:JSON.parse(example)}));
+	let showingFile = false;
+	let selectedFile;
 
-	const fileDidLoad = (result) => {
-		// first, reset any app data. especially if tied to the origami
-		// second: update origami. this can happen two ways, A:
-		const newHistory = [{ type: "input", value: `origami = [FileDialog file]` }];
-		if (result.value) {
-			origami = result.value;
-			// update view mode according to file type
-			if (origami.frame_classes) {
-				if (origami.frame_classes.includes("creasePattern")) {
-					webGLPerspective = "orthographic";
-					viewClass = "creasePattern";
-				} else if (origami.frame_classes.includes("foldedForm")) {
-					renderEngine = "webgl";
-					webGLPerspective = "perspective";
-					viewClass = "foldedForm";
-				}
-			}
-		}
-		newHistory.push(result.error
-			? { type: "error", value: result.error }
-			: { type: "output", value: result.value });
-		// or B:
-		// exec(`origami = ${JSON.stringify(JSON.parse(newFile))}`)
-	};
+	let userInput = "";
+
+	let alertCopiedKey = -1;
+
+	// $: console.log("history", history);
+
 </script>
 
-<main>
-	<Shell bind:exec={exec} bind:origami={origami} bind:history={history}/>
-	<Modifiers {fileDidLoad} {exec} />
-	<View
-		bind:renderEngine={renderEngine}
-		bind:webGLPerspective={webGLPerspective}
-		bind:viewClass={viewClass}
-		bind:strokeWidth={strokeWidth}
+	<Shell bind:exec={exec} bind:history={history} {files} />
+	<DragAndDrop {loadFiles} />
+	<FileManager bind:files={files} bind:loadFiles={loadFiles} />
+
+	<Header bind:history={history} {showingFile} />
+	<div class="container">
+		<Sidebar
+			bind:files={files}
+			bind:showingFile={showingFile}
+			bind:selectedFile={selectedFile}
 		/>
-	<Terminal {exec} {history} />
-	{#if renderEngine === "svg"}
-		<SVG {origami} {viewClass} {strokeWidth} />
-	{:else}
-		<WebGL {origami} {viewClass} {webGLPerspective} {strokeWidth} />
-	{/if}
-</main>
+		{#if showingFile}
+			<FileViewer file={selectedFile} />
+		{:else}
+			<Terminal
+				bind:alertCopiedKey={alertCopiedKey}
+				bind:userInput={userInput}
+				bind:history={history}
+				{exec}
+			/>
+		{/if}
+	</div>
+	<AlertCopied key={alertCopiedKey} />
 
 <style>
-	main {
-		width: 100%;
-		height: 100%;
-		display: grid;
-		grid-template-columns: 50% 50%;
-		grid-template-rows: 33% 33% 34%;
+	.container {
+		width: 100vw;
+		height: calc(100vh - 2.5rem);
+		display: flex;
+		flex-direction: row;
+		justify-content: space-evenly;
+	}
+	.container > :global(*:nth-child(1)) {
+		flex: 1 0 0;
+		max-width: 33vw;
+	}
+	.container > :global(*:last-child) {
+		flex: 0 1 100vw;
+		max-width: 80vw;
 	}
 </style>
